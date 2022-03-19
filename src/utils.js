@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
-var xl = require('excel4node');
+const ExcelJS = require('exceljs');
+const fs = require('fs');
 
 async function getPageData(pairSimbols = 'EURUSD') {
   return new Promise(async (resolve, reject) => {
@@ -49,28 +50,47 @@ function getOscillatorsData(oscillators, movingAverage, summary) {
   return false;
 }
 
-async function writeToFile(pairSimbols, number, col) {
-  var wb = new xl.Workbook();
-  addHeadToExcelFile(ws, col);
-  ws.cell(2, 3).string(String(pairSimbols).toUpperCase());
-  ws.cell(3, 2).string(
-    new Date().toLocaleTimeString('en-US', { hour12: false })
-  );
-  ws.cell(3, 4).number(number);
-  wb.write('data.xlsx');
+function writeToFile(pairSimbols, number) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const date = new Date();
+      const time = date.toLocaleTimeString('en-US', { hour12: false });
+      const fileName = date.toLocaleDateString().replace(/\//g, '-') + '.xlsx';
+      filePath = './data/' + fileName;
+      const workbook = new ExcelJS.Workbook();
+      let worksheet;
+      if (fs.existsSync(filePath)) {
+        await workbook.xlsx.readFile(filePath);
+        worksheet = workbook.getWorksheet(pairSimbols);
+        if (!worksheet) {
+          worksheet = workbook.addWorksheet(pairSimbols);
+        }
+      } else {
+        worksheet = workbook.addWorksheet(pairSimbols);
+      }
+      await addRow(worksheet, { time, number });
+      await workbook.xlsx.writeFile(filePath);
+      resolve(true);
+    } catch (e) {
+      console.log('Error in writeToFile() is', e);
+      reject(false);
+    }
+  });
 }
 
-function addHeadToExcelFile(ws, col = 1) {
-  var style = wb.createStyle({
-    font: {
-      color: '#FF0800',
-      size: 12,
-    },
+function addRow(worksheet, data) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      worksheet.columns = [
+        { header: 'Time', key: 'time' },
+        { header: 'Number', key: 'number' },
+      ];
+      await worksheet.addRow(data);
+      resolve(true);
+    } catch (e) {
+      reject(false);
+    }
   });
-  ws.cell(col, 1).style(style).string('DATE');
-  ws.cell(col, 2).style(style).string('TIME');
-  ws.cell(col, 3).string('NAME');
-  ws.cell(col, 4).string('NUMBER');
 }
 
 exports.getList = getList;

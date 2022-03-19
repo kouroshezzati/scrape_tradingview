@@ -13,6 +13,26 @@ const {
   writeToFile,
 } = require('../utils');
 
+let mockReadFile = jest.fn(),
+  mockWriteFile = jest.fn(),
+  mockGetWorksheet = jest.fn(),
+  mockAddWorksheet = jest.fn();
+jest.mock('exceljs', () => ({
+  ...jest.requireActual('exceljs'),
+  Workbook: jest.fn().mockImplementation(() => ({
+    xlsx: { readFile: mockReadFile, writeFile: mockWriteFile },
+    getWorksheet: mockGetWorksheet,
+    addWorksheet: mockAddWorksheet,
+  })),
+}));
+
+let mockExistsSync = jest.fn();
+
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  existsSync: () => mockExistsSync(),
+}));
+
 const mockGoTo = jest.fn();
 const mockEvaluate = jest.fn(getList);
 
@@ -57,7 +77,46 @@ describe('Test conditions', () => {
 });
 
 describe('Test write to file', () => {
-  test('should write data to a file', () => {
-    writeToFile(null, null, 'hi');
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should read from an excel file', async () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockReturnValue(true);
+    const mockAddRow = jest.fn();
+    mockGetWorksheet = jest.fn(() => ({ addRow: mockAddRow }));
+    await writeToFile('EURUSD', 40);
+    expect(mockExistsSync).toHaveBeenCalledTimes(1);
+    expect(mockReadFile).toHaveBeenCalledTimes(1);
+    expect(mockGetWorksheet).toHaveBeenCalledTimes(1);
+    expect(mockAddWorksheet).toHaveBeenCalledTimes(0);
+    expect(mockAddRow).toHaveBeenCalledTimes(1);
+  });
+
+  test('should read from an excel file and create a worksheet', async () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockReturnValue(true);
+    mockGetWorksheet.mockReturnValue(undefined);
+    const mockAddRow = jest.fn();
+    mockAddWorksheet = jest.fn(() => ({ addRow: mockAddRow }));
+    await writeToFile('EURUSD', 40);
+    expect(mockExistsSync).toHaveBeenCalledTimes(1);
+    expect(mockReadFile).toHaveBeenCalledTimes(1);
+    expect(mockGetWorksheet).toHaveBeenCalledTimes(1);
+    expect(mockAddWorksheet).toHaveBeenCalledTimes(1);
+    expect(mockAddRow).toHaveBeenCalledTimes(1);
+  });
+
+  test('should read from excel file', async () => {
+    mockExistsSync.mockReturnValue(false);
+    const mockAddRow = jest.fn();
+    mockAddWorksheet = jest.fn(() => ({ addRow: mockAddRow }));
+    await writeToFile('EURUSD', 40);
+    expect(mockExistsSync).toHaveBeenCalledTimes(1);
+    expect(mockReadFile).toHaveBeenCalledTimes(0);
+    expect(mockGetWorksheet).toHaveBeenCalledTimes(0);
+    expect(mockAddWorksheet).toHaveBeenCalledTimes(1);
+    expect(mockAddRow).toHaveBeenCalledTimes(1);
   });
 });
