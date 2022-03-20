@@ -68,26 +68,15 @@ function writeToFile(pairSimbols, number) {
       } else {
         worksheet = workbook.addWorksheet(pairSimbols);
       }
-      await addRow(worksheet, { time, number });
-      await workbook.xlsx.writeFile(filePath);
-      resolve(true);
-    } catch (e) {
-      console.log('Error in writeToFile() is', e);
-      reject(false);
-    }
-  });
-}
-
-function addRow(worksheet, data) {
-  return new Promise(async (resolve, reject) => {
-    try {
       worksheet.columns = [
         { header: 'Time', key: 'time' },
         { header: 'Number', key: 'number' },
       ];
-      await worksheet.addRow(data);
+      worksheet.addRow({ time, number });
+      await workbook.xlsx.writeFile(filePath);
       resolve(true);
     } catch (e) {
+      console.log('Error in writeToFile() is', e);
       reject(false);
     }
   });
