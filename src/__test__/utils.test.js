@@ -12,8 +12,7 @@ const {
   getOscillatorsData,
   writeToFile,
 } = require('../utils');
-const { pairSymbols } = require('../scrape');
-
+const { mockData } = require('./data');
 let mockReadFile = jest.fn(),
   mockWriteFile = jest.fn(),
   mockGetWorksheet = jest.fn(),
@@ -87,37 +86,38 @@ describe('Test write to file', () => {
     mockReadFile.mockReturnValue(true);
     const mockAddRow = jest.fn();
     mockGetWorksheet = jest.fn(() => ({ addRow: mockAddRow }));
-    await writeToFile('EURUSD', 40);
+    await writeToFile(mockData.slice(0, 2));
     expect(mockExistsSync).toHaveBeenCalledTimes(1);
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockGetWorksheet).toHaveBeenCalledTimes(1);
+    expect(mockGetWorksheet).toHaveBeenCalledTimes(2);
     expect(mockAddWorksheet).toHaveBeenCalledTimes(0);
-    expect(mockAddRow).toHaveBeenCalledTimes(1);
+    expect(mockAddRow).toHaveBeenCalledTimes(2);
   });
 
-  test('should read from an excel file and create a worksheet', async () => {
+  test('should read from an excel file and create two worksheets', async () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockReturnValue(true);
     mockGetWorksheet.mockReturnValue(undefined);
     const mockAddRow = jest.fn();
     mockAddWorksheet = jest.fn(() => ({ addRow: mockAddRow }));
-    await writeToFile('EURUSD', 40);
+    await writeToFile(mockData.slice(0, 2));
     expect(mockExistsSync).toHaveBeenCalledTimes(1);
     expect(mockReadFile).toHaveBeenCalledTimes(1);
-    expect(mockGetWorksheet).toHaveBeenCalledTimes(1);
-    expect(mockAddWorksheet).toHaveBeenCalledTimes(1);
-    expect(mockAddRow).toHaveBeenCalledTimes(1);
+    expect(mockGetWorksheet).toHaveBeenCalledTimes(2);
+    expect(mockAddWorksheet).toHaveBeenCalledTimes(2);
+    expect(mockAddRow).toHaveBeenCalledTimes(2);
   });
 
-  test('should read from excel file', async () => {
+  test('should write an excel file', async () => {
     mockExistsSync.mockReturnValue(false);
+    mockGetWorksheet.mockReturnValue(undefined);
     const mockAddRow = jest.fn();
     mockAddWorksheet = jest.fn(() => ({ addRow: mockAddRow }));
-    await writeToFile('EURUSD', 40);
+    await writeToFile(mockData.slice(0, 2));
     expect(mockExistsSync).toHaveBeenCalledTimes(1);
     expect(mockReadFile).toHaveBeenCalledTimes(0);
-    expect(mockGetWorksheet).toHaveBeenCalledTimes(0);
-    expect(mockAddWorksheet).toHaveBeenCalledTimes(1);
-    expect(mockAddRow).toHaveBeenCalledTimes(1);
+    expect(mockGetWorksheet).toHaveBeenCalledTimes(2);
+    expect(mockAddWorksheet).toHaveBeenCalledTimes(2);
+    expect(mockAddRow).toHaveBeenCalledTimes(2);
   });
 });
