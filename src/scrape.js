@@ -43,7 +43,5 @@ var pairSymbols = {
   BTCUSD: 'https://www.tradingview.com/symbols/BTCUSD/technicals/',
 };
 
-scrape();
-
 exports.scrape = scrape;
 exports.pairSymbols = pairSymbols;

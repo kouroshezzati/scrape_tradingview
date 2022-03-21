@@ -6,12 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const html = fs.readFileSync(path.resolve(__dirname, 'template.html'));
-const {
-  getPageData,
-  getList,
-  getOscillatorsData,
-  writeToFile,
-} = require('../utils');
+const { getPageData, getOscillatorsData, writeToFile } = require('../utils');
 const { mockData } = require('./data');
 let mockReadFile = jest.fn(),
   mockWriteFile = jest.fn(),
@@ -40,7 +35,12 @@ const mockClose = jest.fn();
 jest.mock('puppeteer-cluster', () => ({
   ...jest.requireActual('puppeteer-cluster'),
   Cluster: {
-    launch: () => ({ task: mockTask, idle: mockIdle, close: mockClose }),
+    launch: () => ({
+      task: mockTask,
+      idle: mockIdle,
+      close: mockClose,
+      queue: jest.fn(),
+    }),
   },
 }));
 
