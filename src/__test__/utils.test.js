@@ -12,6 +12,7 @@ const {
   getOscillatorsData,
   writeToFile,
 } = require('../utils');
+const { pairSymbols } = require('../scrape');
 
 let mockReadFile = jest.fn(),
   mockWriteFile = jest.fn(),
@@ -33,26 +34,26 @@ jest.mock('fs', () => ({
   existsSync: () => mockExistsSync(),
 }));
 
-const mockGoTo = jest.fn();
-const mockEvaluate = jest.fn(getList);
+const mockTask = jest.fn();
+const mockIdle = jest.fn();
+const mockClose = jest.fn();
 
-jest.mock('puppeteer', () => ({
-  ...jest.requireActual('puppeteer'),
-  launch: () => ({
-    newPage: () => ({ goto: mockGoTo, evaluate: mockEvaluate }),
-    close: jest.fn(),
-  }),
+jest.mock('puppeteer-cluster', () => ({
+  ...jest.requireActual('puppeteer-cluster'),
+  Cluster: {
+    launch: () => ({ task: mockTask, idle: mockIdle, close: mockClose }),
+  },
 }));
 
-describe('Test scraper', () => {
+describe('Test getPageData', () => {
   beforeEach(() => {
     document.body.innerHTML = html.toString();
   });
   test('should return data from the page', async () => {
-    const { oscillators, summary, movingAverage } = await getPageData();
-    expect(oscillators).toEqual({ sell: 1, neutral: 9, buy: 1 });
-    expect(summary).toEqual({ sell: 12, neutral: 10, buy: 3 });
-    expect(movingAverage).toEqual({ sell: 11, neutral: 1, buy: 2 });
+    await getPageData(['link1', 'link2']);
+    expect(mockTask).toHaveBeenCalledTimes(1);
+    expect(mockIdle).toHaveBeenCalledTimes(1);
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 });
 

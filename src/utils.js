@@ -1,22 +1,31 @@
-const puppeteer = require('puppeteer');
+const { Cluster } = require('puppeteer-cluster');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 
-async function getPageData(pairSimbols = 'EURUSD') {
+async function getPageData(links) {
   return new Promise(async (resolve, reject) => {
     try {
-      const browser = await puppeteer.launch({ headless: false });
-      const page = await browser.newPage();
-      await page.goto(
-        `https://www.tradingview.com/symbols/${pairSimbols}/technicals/`,
-        {
+      const cluster = await Cluster.launch({
+        concurrency: Cluster.CONCURRENCY_PAGE,
+        maxConcurrency: 200,
+        monitor: true,
+      });
+      let allData = [];
+      await cluster.task(async function getData({ page, data: url }) {
+        await page.goto(url, {
           waitUntil: 'networkidle2',
-        }
-      );
-      const containers = await page.evaluate(getList);
-      const [oscillators, summary, movingAverage] = containers;
-      await browser.close();
-      resolve({ oscillators, summary, movingAverage });
+        });
+        const data = await page.evaluate(getList);
+        const [oscillators, summary, movingAverage] = data;
+        allData.push({ oscillators, summary, movingAverage });
+      });
+      links.map(async function addQueue(link) {
+        cluster.queue(link);
+      });
+
+      await cluster.idle();
+      await cluster.close();
+      resolve(allData);
     } catch (e) {
       reject(e);
     }
@@ -50,7 +59,7 @@ function getOscillatorsData(oscillators, movingAverage, summary) {
   return false;
 }
 
-function writeToFile(pairSimbols, number) {
+async function writeToFile(pairSimbols, number) {
   return new Promise(async (resolve, reject) => {
     try {
       const date = new Date();

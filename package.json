@@ -13,7 +13,8 @@
   "dependencies": {
     "exceljs": "^4.3.0",
     "express": "^4.17.3",
-    "puppeteer": "^13.5.1"
+    "puppeteer": "^13.5.1",
+    "puppeteer-cluster": "^0.23.0"
   },
   "devDependencies": {
     "jest": "^27.5.1",
