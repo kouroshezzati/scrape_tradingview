@@ -15,6 +15,9 @@ async function getPageData(links) {
         await page.goto(url, {
           waitUntil: 'networkidle2',
         });
+        const buttonQuery = '.button-1cy7XKgV.medium-1cy7XKgV:first-child';
+        const buttonElement = await page.waitForSelector(buttonQuery);
+        await buttonElement.click(buttonElement);
         const data = await page.evaluate(getList);
         const [oscillators, summary, movingAverage] = data;
         allData.push({ oscillators, summary, movingAverage });
