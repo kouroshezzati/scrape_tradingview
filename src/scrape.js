@@ -1,3 +1,4 @@
+const schedule = require('node-schedule');
 const { writeToFile, getPageData } = require('./utils');
 
 async function scrape() {
@@ -45,3 +46,12 @@ var pairSymbols = {
 
 exports.scrape = scrape;
 exports.pairSymbols = pairSymbols;
+schedule.scheduleJob('*/1 4-23 * * 1-5', function (fireDate) {
+  console.log(
+    'This job was supposed to run at ' +
+      fireDate +
+      ', but actually ran at ' +
+      new Date()
+  );
+  scrape();
+});
