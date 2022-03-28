@@ -1,5 +1,5 @@
 var CronJob = require('cron').CronJob;
-const { writeToFile, getPageData } = require('./utils');
+const { writeToFile, getPageData, TIMEZONE } = require('./utils');
 
 async function scrape() {
   try {
@@ -55,6 +55,6 @@ var job = new CronJob(
   },
   null,
   true,
-  'Asia/Nicosia'
+  TIMEZONE
 );
 job.start();

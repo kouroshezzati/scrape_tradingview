@@ -2,6 +2,8 @@ const { Cluster } = require('puppeteer-cluster');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 
+const TIMEZONE = 'Asia/Nicosia';
+
 async function getPageData(links) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -68,7 +70,10 @@ async function writeToFile(rows) {
       throw new Error('the rows of data is not valid');
     }
     const date = new Date();
-    const time = date.toLocaleTimeString('en-US', { hour12: false });
+    const time = date.toLocaleTimeString('en-US', {
+      hour12: false,
+      timeZone: TIMEZONE,
+    });
     const fileName = date.toLocaleDateString().replace(/\//g, '-') + '.xlsx';
     filePath = './data/' + fileName;
     const workbook = new ExcelJS.Workbook();
@@ -107,3 +112,4 @@ exports.getList = getList;
 exports.getOscillatorsData = getOscillatorsData;
 exports.getPageData = getPageData;
 exports.writeToFile = writeToFile;
+exports.TIMEZONE = TIMEZONE;
