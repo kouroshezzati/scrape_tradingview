@@ -91,13 +91,12 @@ async function writeToFile(rows) {
         { header: 'Time', key: 'time' },
         { header: 'Number', key: 'number' },
       ];
+      const number =
+        getOscillatorsData(row.oscillators, row.movingAverage, row.summary) ||
+        '';
       worksheet.addRow({
         time,
-        number: getOscillatorsData(
-          row.oscillators,
-          row.movingAverage,
-          row.summary
-        ),
+        number,
       });
     });
     await workbook.xlsx.writeFile(filePath);
