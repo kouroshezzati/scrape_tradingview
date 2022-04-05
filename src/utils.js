@@ -10,7 +10,7 @@ async function getPageData(links) {
       const cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_PAGE,
         maxConcurrency: 200,
-        monitor: true,
+        monitor: false,
       });
       let allData = [];
       await cluster.task(async function getData({ page, data: url }) {
@@ -19,11 +19,11 @@ async function getPageData(links) {
         });
         const buttonQuery = 'button[role=tab]:first-child';
         const buttonElement = await page.waitForSelector(buttonQuery);
+        const beforClickdata = await page.evaluate(getList);
         await buttonElement.click(buttonElement);
-        await page.waitForResponse(
-          'https://scanner.tradingview.com/crypto/scan'
-        );
+        await page.waitForResponse((response) => response.status() === 200);
         const data = await page.evaluate(getList);
+        console.log(JSON.stringify(beforClickdata) == JSON.stringify(data));
         const [oscillators, summary, movingAverage] = data;
         allData.push({ oscillators, summary, movingAverage });
       });
@@ -54,19 +54,39 @@ function getList() {
   return data;
 }
 
-function getOscillatorsData(oscillators, movingAverage, summary) {
+function getOscillatorsData(oscillators, movingAverage, summary, sheetName) {
+  let out = '';
   if (
     movingAverage?.buy > movingAverage?.sell &&
     summary?.buy > summary?.sell
   ) {
-    return `${oscillators.neutral}${oscillators.buy}`;
+    out = `${oscillators.neutral}${oscillators.buy}`;
   } else if (
     movingAverage?.buy < movingAverage?.sell &&
     summary?.buy < summary?.sell
   ) {
-    return `${oscillators.neutral}${oscillators.sell}`;
+    out = `${oscillators.neutral}${oscillators.sell}`;
   }
-  return false;
+  console.log(
+    new Date().toLocaleTimeString(),
+    sheetName,
+    `MA.buy: ${spaceBeforeSingleDigit(
+      movingAverage.buy
+    )}, MA.sell: ${spaceBeforeSingleDigit(
+      movingAverage.sell
+    )}, sum.buy: ${spaceBeforeSingleDigit(
+      summary.buy
+    )}, sum.sell: ${spaceBeforeSingleDigit(summary.sell)} = ${out}`,
+    { oscillators }
+  );
+  if (!out) {
+    return false;
+  }
+  return out;
+}
+
+function spaceBeforeSingleDigit(digit) {
+  return String(digit).length < 2 ? ' ' + digit : digit;
 }
 
 async function writeToFile(rows) {
@@ -97,8 +117,12 @@ async function writeToFile(rows) {
         { header: 'Number', key: 'number' },
       ];
       const number =
-        getOscillatorsData(row.oscillators, row.movingAverage, row.summary) ||
-        '';
+        getOscillatorsData(
+          row.oscillators,
+          row.movingAverage,
+          row.summary,
+          sheetName
+        ) || '';
       worksheet.addRow({
         time,
         number,
