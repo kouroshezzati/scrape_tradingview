@@ -70,19 +70,24 @@ function getOscillatorsData(oscillators, movingAverage, summary, sheetName) {
   console.log(
     new Date().toLocaleTimeString(),
     sheetName,
-    `MA.buy: ${spaceBeforeSingleDigit(
-      movingAverage.buy
-    )}, MA.sell: ${spaceBeforeSingleDigit(
-      movingAverage.sell
-    )}, sum.buy: ${spaceBeforeSingleDigit(
-      summary.buy
-    )}, sum.sell: ${spaceBeforeSingleDigit(summary.sell)} = ${out}`,
-    { oscillators }
+    `MA ${logPairCurrency(movingAverage)}, SUM ${logPairCurrency(
+      summary
+    )}, OS ${logPairCurrency(oscillators)}, result = ${out}`
   );
   if (!out) {
     return false;
   }
   return out;
+}
+
+function logPairCurrency(pairCurrency) {
+  if (!pairCurrency) {
+    return;
+  }
+  const { buy, neutral, sell } = pairCurrency;
+  return `[${spaceBeforeSingleDigit(sell)}, ${spaceBeforeSingleDigit(
+    neutral
+  )}, ${spaceBeforeSingleDigit(buy)}]`;
 }
 
 function spaceBeforeSingleDigit(digit) {
