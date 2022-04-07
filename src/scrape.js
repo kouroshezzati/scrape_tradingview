@@ -3,11 +3,17 @@ const { writeToFile, getPageData, TIMEZONE } = require('./utils');
 
 async function scrape() {
   try {
+    const symbols = Object.keys(pairSymbols);
     const data = await getPageData(Object.values(pairSymbols));
     if (!data || !Array.isArray(data) || data.length == 0) {
+      writeToFile(
+        symbols.map((symbol) => ({
+          symbol,
+        })),
+        true
+      );
       throw new Error('The page data is not valid');
     }
-    const symbols = Object.keys(pairSymbols);
     const rows = data.map(function mapDataToRow(row, index) {
       return {
         ...row,

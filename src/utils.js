@@ -94,11 +94,8 @@ function spaceBeforeSingleDigit(digit) {
   return String(digit).length < 2 ? ' ' + digit : digit;
 }
 
-async function writeToFile(rows) {
+async function writeToFile(rows, failure = false) {
   try {
-    if (!rows || !Array.isArray(rows) || rows.length == 0) {
-      throw new Error('the rows of data is not valid');
-    }
     const date = new Date();
     const time = date.toLocaleTimeString('en-US', {
       hour12: false,
@@ -121,6 +118,12 @@ async function writeToFile(rows) {
         { header: 'Time', key: 'time' },
         { header: 'Number', key: 'number' },
       ];
+      if(failure){
+        return worksheet.addRow({
+          time,
+          number: 'failure',
+        });
+      }
       const number =
         getOscillatorsData(
           row.oscillators,
