@@ -20,6 +20,7 @@ async function getPageData(links) {
         const buttonQuery = 'button[role=tab]:first-child';
         const buttonElement = await page.waitForSelector(buttonQuery);
         await buttonElement.click(buttonElement);
+        await page.waitForResponse('https://scanner.tradingview.com/crypto/scan');
         const data = await page.evaluate(getList);
         const [oscillators, summary, movingAverage] = data;
         allData.push({ oscillators, summary, movingAverage });
@@ -50,7 +51,6 @@ function getList() {
 }
 
 function getOscillatorsData(oscillators, movingAverage, summary) {
-  console.log({ movingAverage, summary });
   if (
     movingAverage?.buy > movingAverage?.sell &&
     summary?.buy > summary?.sell
