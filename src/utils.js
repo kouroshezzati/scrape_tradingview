@@ -17,7 +17,7 @@ async function getPageData(links) {
         await page.goto(url, {
           waitUntil: 'networkidle2',
         });
-        const buttonQuery = '.button-1cy7XKgV.medium-1cy7XKgV:first-child';
+        const buttonQuery = 'button[role=tab]:first-child';
         const buttonElement = await page.waitForSelector(buttonQuery);
         await buttonElement.click(buttonElement);
         const data = await page.evaluate(getList);
@@ -38,18 +38,19 @@ async function getPageData(links) {
 }
 
 function getList() {
-  let list = Array.from(document.querySelectorAll('.countersWrapper-DPgs-R4s'));
+  let list = Array.from(document.querySelectorAll("div[class*='countersWrapper']"));
   let data = list.map(function convertTo2DArray(item) {
     return {
-      sell: +item.querySelector('.sellColor-DPgs-R4s').innerHTML,
-      neutral: +item.querySelector('.neutralColor-DPgs-R4s').innerHTML,
-      buy: +item.querySelector('.buyColor-DPgs-R4s').innerHTML,
+      sell: +item.querySelector("span[class*='sellColor']").innerHTML,
+      neutral: +item.querySelector("span[class*='neutralColor']").innerHTML,
+      buy: +item.querySelector("span[class*='buyColor']").innerHTML,
     };
   });
   return data;
 }
 
 function getOscillatorsData(oscillators, movingAverage, summary) {
+  console.log({ movingAverage, summary });
   if (
     movingAverage?.buy > movingAverage?.sell &&
     summary?.buy > summary?.sell
