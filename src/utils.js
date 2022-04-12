@@ -20,7 +20,9 @@ async function getPageData(links) {
         const buttonQuery = 'button[role=tab]:first-child';
         const buttonElement = await page.waitForSelector(buttonQuery);
         await buttonElement.click(buttonElement);
-        await page.waitForResponse('https://scanner.tradingview.com/crypto/scan');
+        await page.waitForResponse(
+          'https://scanner.tradingview.com/crypto/scan'
+        );
         const data = await page.evaluate(getList);
         const [oscillators, summary, movingAverage] = data;
         allData.push({ oscillators, summary, movingAverage });
@@ -39,7 +41,9 @@ async function getPageData(links) {
 }
 
 function getList() {
-  let list = Array.from(document.querySelectorAll("div[class*='countersWrapper']"));
+  let list = Array.from(
+    document.querySelectorAll("div[class*='countersWrapper']")
+  );
   let data = list.map(function convertTo2DArray(item) {
     return {
       sell: +item.querySelector("span[class*='sellColor']").innerHTML,
